@@ -3,18 +3,17 @@ import numpy as np
 
 
 # --------------------------------
-# Gamma Correction
+# 1. Gamma Correction
 # --------------------------------
 
-def gamma_correction(image, gamma=1.5):
+def gamma_correction(image, gamma=1.2):
     """
-    Brightens a dark image while preserving natural colors.
+    Brightens a dark image while preserving its dimensions.
 
     gamma > 1 -> brighter
     gamma < 1 -> darker
     """
 
-    # Convert gamma value into exponent
     inv_gamma = 1.0 / gamma
 
     table = np.array([
@@ -26,34 +25,39 @@ def gamma_correction(image, gamma=1.5):
 
 
 # --------------------------------
-# CLAHE Enhancement
+# 2. CLAHE Enhancement
 # --------------------------------
 
 def apply_clahe(image):
     """
-    Applies CLAHE only to the luminance channel.
-    This prevents color distortion.
+    Improves local contrast using CLAHE.
+    CLAHE is applied only to the luminance channel.
     """
 
-    # Convert BGR -> LAB
-    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    # BGR -> LAB
+    lab = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2LAB
+    )
 
-    # Split LAB channels
+    # Split channels
     l, a, b = cv2.split(lab)
 
-    # CLAHE configuration
+    # Create CLAHE
     clahe = cv2.createCLAHE(
         clipLimit=2.0,
         tileGridSize=(8, 8)
     )
 
-    # Apply CLAHE ONLY to brightness channel
+    # Apply CLAHE to brightness channel
     l = clahe.apply(l)
 
     # Merge channels
-    enhanced_lab = cv2.merge((l, a, b))
+    enhanced_lab = cv2.merge(
+        (l, a, b)
+    )
 
-    # Convert LAB -> BGR
+    # LAB -> BGR
     enhanced = cv2.cvtColor(
         enhanced_lab,
         cv2.COLOR_LAB2BGR
@@ -63,12 +67,12 @@ def apply_clahe(image):
 
 
 # --------------------------------
-# Mild Denoising
+# 3. Mild Denoising
 # --------------------------------
 
 def denoise(image):
     """
-    Removes some noise without destroying object details.
+    Reduces noise while preserving object details.
     """
 
     return cv2.fastNlMeansDenoisingColored(
@@ -82,28 +86,123 @@ def denoise(image):
 
 
 # --------------------------------
-# Complete Night Enhancement
+# 4. Complete Enhancement Pipeline
 # --------------------------------
 
 def enhance_night_image(image):
     """
-    Complete night image enhancement pipeline.
+    Complete night-time enhancement pipeline.
+
+    Steps:
+    1. Gamma correction
+    2. CLAHE
+    3. Mild denoising
     """
 
-    # Step 1: Brighten
+    # Step 1: Brightness enhancement
     gamma_image = gamma_correction(
         image,
-        gamma=1.5
+        gamma=1.2
     )
 
-    # Step 2: Improve local contrast
+    # Step 2: Contrast enhancement
     clahe_image = apply_clahe(
         gamma_image
     )
 
-    # Step 3: Mild noise reduction
+    # Step 3: Noise reduction
     final_image = denoise(
         clahe_image
     )
 
     return final_image
+
+
+# --------------------------------
+# 5. Test the Enhancement
+# --------------------------------
+
+if __name__ == "__main__":
+
+    # Change this to your image path
+    input_path = "C:/SmartVisionSystem/data/input/image1.jpg"
+
+    # Output path
+    output_path = (
+        "C:/SmartVisionSystem/data/output/enhanced_night.jpg"
+    )
+
+    # Read image
+    image = cv2.imread(input_path)
+
+    if image is None:
+        print("Error: Could not load image.")
+        exit()
+
+    # Enhance image
+    enhanced_image = enhance_night_image(image)
+
+    # --------------------------------
+    # Save enhanced image
+    # --------------------------------
+
+    success = cv2.imwrite(
+        output_path,
+        enhanced_image
+    )
+
+    if success:
+        print("Enhanced image saved successfully:")
+        print(output_path)
+    else:
+        print("Error: Could not save enhanced image.")
+
+    # --------------------------------
+    # Display Original
+    # --------------------------------
+
+    cv2.namedWindow(
+        "Original Image",
+        cv2.WINDOW_NORMAL
+    )
+
+    cv2.resizeWindow(
+        "Original Image",
+        1000,
+        600
+    )
+
+    cv2.imshow(
+        "Original Image",
+        image
+    )
+
+    # --------------------------------
+    # Display Enhanced
+    # --------------------------------
+
+    cv2.namedWindow(
+        "Enhanced Image",
+        cv2.WINDOW_NORMAL
+    )
+
+    cv2.resizeWindow(
+        "Enhanced Image",
+        1000,
+        600
+    )
+
+    cv2.imshow(
+        "Enhanced Image",
+        enhanced_image
+    )
+
+    # --------------------------------
+    # Wait
+    # --------------------------------
+
+    print("\nPress any key to close the images.")
+
+    cv2.waitKey(0)
+
+    cv2.destroyAllWindows()

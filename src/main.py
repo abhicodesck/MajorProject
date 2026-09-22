@@ -1,10 +1,10 @@
 import cv2
 
-from enhancement import gamma_correction, apply_clahe
+from enhancement import enhance_night_image
 
 
 # Read image
-image = cv2.imread("C:/SmartVisionSystem/data/input/lowlight.png")
+image = cv2.imread("C:/SmartVisionSystem/data/input/image1.jpg")
 
 if image is None:
     print("Image not found!")
@@ -12,7 +12,7 @@ if image is None:
 
 
 # Apply gamma correction
-gamma_image = gamma_correction(image, gamma=1.5)
+gamma_image = enhance_night_image(image)
 
 
 # Apply CLAHE

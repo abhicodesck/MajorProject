@@ -15,7 +15,7 @@ model = YOLO("yolo11n.pt")
 # 2. Read night-time image
 # -----------------------------
 
-image = cv2.imread("C:/SmartVisionSystem/data/input/vis.jpg")
+image = cv2.imread("C:/SmartVisionSystem/data/input/image1.jpg")
 
 if image is None:
     print("Error: Image not found!")
